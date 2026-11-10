@@ -126,13 +126,17 @@ class DockerExecutor:
                 raise ValueError("Generated tests cannot overwrite repository files")
         started = time.monotonic()
         outcome: Outcome
+        suite = list(self.tests)
+        for name in sorted(generated):
+            if not any(name == entry or name.startswith(entry.rstrip("/") + "/") for entry in suite):
+                suite.append(name)
         try:
             value = self._job(
                 root,
                 {
                     "generated": generated,
                     "mutant": mutant.model_dump() if mutant else None,
-                    "tests": tests if tests is not None else self.tests + sorted(generated),
+                    "tests": tests if tests is not None else suite,
                     "source_dirs": self.source_dirs,
                     "timeout_s": self.timeout_s,
                 },
