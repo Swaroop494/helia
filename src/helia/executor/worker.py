@@ -62,9 +62,9 @@ def main():
         path = root / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(source, encoding="utf-8")
-    Path("/work/coveragerc").write_text(
-        "[run]\nbranch = True\nsource =\n" + "".join("    " + s + "\n" for s in job["source_dirs"])
-    )
+    # coverage.py interprets source entries as modules/directories, not .py files.
+    # Measure the copied checkout, then retain only configured production paths.
+    Path("/work/coveragerc").write_text("[run]\nbranch = True\nsource = .\n")
     command = [
         sys.executable,
         "-m",
@@ -121,6 +121,8 @@ def main():
         try:
             relative = path.relative_to(root).as_posix()
         except ValueError:
+            continue
+        if not any(relative == s or relative.startswith(s.rstrip("/") + "/") for s in job["source_dirs"]):
             continue
         contexts[relative] = {str(k): v for k, v in data.contexts_by_lineno(measured).items()}
         statements[relative] = cov.analysis2(measured)[1]
