@@ -1,0 +1,106 @@
+{
+  "$defs": {
+    "Region": {
+      "additionalProperties": false,
+      "properties": {
+        "calls": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Calls",
+          "type": "array"
+        },
+        "end_line": {
+          "title": "End Line",
+          "type": "integer"
+        },
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "line": {
+          "title": "Line",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "file",
+        "name",
+        "line",
+        "end_line",
+        "source"
+      ],
+      "title": "Region",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "files": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "fixtures": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Fixtures",
+      "type": "object"
+    },
+    "parse_errors": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Parse Errors",
+      "type": "object"
+    },
+    "regions": {
+      "items": {
+        "$ref": "#/$defs/Region"
+      },
+      "title": "Regions",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "tests": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Tests",
+      "type": "object"
+    }
+  },
+  "required": [
+    "regions",
+    "files"
+  ],
+  "title": "RepoIndex",
+  "type": "object"
+}

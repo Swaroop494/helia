@@ -1,0 +1,155 @@
+{
+  "$defs": {
+    "ExecResult": {
+      "additionalProperties": false,
+      "properties": {
+        "contexts": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object"
+          },
+          "title": "Contexts",
+          "type": "object"
+        },
+        "duration_s": {
+          "minimum": 0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "failures": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Failures",
+          "type": "array"
+        },
+        "mutant_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mutant Id"
+        },
+        "outcome": {
+          "enum": [
+            "pass",
+            "assert_fail",
+            "exception",
+            "timeout",
+            "infra_error",
+            "no_tests"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "output": {
+          "default": "",
+          "title": "Output",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "statements": {
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "title": "Statements",
+          "type": "object"
+        },
+        "target": {
+          "enum": [
+            "original",
+            "mutant"
+          ],
+          "title": "Target",
+          "type": "string"
+        },
+        "test_id": {
+          "default": "suite",
+          "title": "Test Id",
+          "type": "string"
+        },
+        "test_outcomes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Test Outcomes",
+          "type": "object"
+        }
+      },
+      "required": [
+        "target",
+        "outcome",
+        "duration_s"
+      ],
+      "title": "ExecResult",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/ExecResult"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "rationale": {
+      "title": "Rationale",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "status": {
+      "enum": [
+        "invalid",
+        "flaky",
+        "bug_lead",
+        "confirmed",
+        "infrastructure"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "test_source": {
+      "title": "Test Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "status",
+    "test_source",
+    "evidence",
+    "rationale"
+  ],
+  "title": "BugLead",
+  "type": "object"
+}

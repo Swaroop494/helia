@@ -1,0 +1,61 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "file": {
+      "title": "File",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "line": {
+      "minimum": 1,
+      "title": "Line",
+      "type": "integer"
+    },
+    "occurrence": {
+      "minimum": 0,
+      "title": "Occurrence",
+      "type": "integer"
+    },
+    "operator": {
+      "title": "Operator",
+      "type": "string"
+    },
+    "operator_args": {
+      "additionalProperties": true,
+      "title": "Operator Args",
+      "type": "object"
+    },
+    "region": {
+      "title": "Region",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "split": {
+      "default": "feedback",
+      "enum": [
+        "feedback",
+        "heldout"
+      ],
+      "title": "Split",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "file",
+    "line",
+    "operator",
+    "occurrence",
+    "region"
+  ],
+  "title": "Mutant",
+  "type": "object"
+}

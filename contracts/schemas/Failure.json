@@ -1,0 +1,52 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "category": {
+      "enum": [
+        "boundary",
+        "type",
+        "state",
+        "exception",
+        "logic"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "mutant_id": {
+      "title": "Mutant Id",
+      "type": "string"
+    },
+    "region": {
+      "title": "Region",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "signature": {
+      "title": "Signature",
+      "type": "string"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    },
+    "test_id": {
+      "title": "Test Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "signature",
+    "category",
+    "region",
+    "mutant_id",
+    "test_id",
+    "summary"
+  ],
+  "title": "Failure",
+  "type": "object"
+}

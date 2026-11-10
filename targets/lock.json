@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "targets": [
+    {"name": "cachetools", "url": "https://github.com/tkem/cachetools.git", "commit": "c403f9f4185e58090b904c1915345b9ba46d5a08", "ref": "v5.5.2", "source_dirs": ["src/cachetools"], "license_expected": "MIT", "qualification": "pending Docker suite timing and repeatability"},
+    {"name": "toolz", "url": "https://github.com/pytoolz/toolz.git", "commit": "07f30a9c75e07a4b7095d0ec93ba4e963504f259", "ref": "1.0.0", "source_dirs": ["toolz"], "license_expected": "BSD-3-Clause", "qualification": "pending Docker suite timing, repeatability and LOC audit"},
+    {"name": "tabulate", "url": "https://github.com/astanin/python-tabulate.git", "commit": "bf58e37e6b35e3cc9a0bd740f752abfd32b6e6f8", "ref": "v0.9.0", "source_dirs": ["tabulate"], "license_expected": "MIT", "qualification": "pending Docker suite timing, repeatability and LOC audit"}
+  ]
+}

@@ -1,0 +1,26 @@
+# Copy per target and fill current model/prices before live generation.
+repo: ../targets/checkouts/cachetools
+source_dirs: [src/cachetools]
+tests: [tests]
+image: helia-cachetools:locked
+backend: docker
+arms: [repo, one-shot, guided, random, coverup]
+seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+rounds: 10
+mutant_budget: 100
+per_file: 40
+heldout_fraction: 0.3
+timeout_s: 60
+workers: 2
+reruns: 3
+budget_usd: 5
+max_calls: 10
+model: ""
+input_per_million: 0
+output_per_million: 0
+replay_only: true
+require_tag: true
+coverup_bundle: ../targets/coverup/cachetools
+cache: ../.helia-cache
+runs: ../runs
+

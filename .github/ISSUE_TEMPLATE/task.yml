@@ -1,0 +1,17 @@
+name: Implementation or experiment task
+description: A scoped task with a verifiable completion gate
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance checks
+      description: Include track, phase, tier, dependencies and evidence needed.
+    validations:
+      required: true
+

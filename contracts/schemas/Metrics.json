@@ -1,0 +1,191 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "arm": {
+      "enum": [
+        "repo",
+        "one-shot",
+        "guided",
+        "random",
+        "coverup"
+      ],
+      "title": "Arm",
+      "type": "string"
+    },
+    "bug_leads": {
+      "default": 0,
+      "title": "Bug Leads",
+      "type": "integer"
+    },
+    "confirmed_bugs": {
+      "default": 0,
+      "title": "Confirmed Bugs",
+      "type": "integer"
+    },
+    "cost_per_heldout_kill": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cost Per Heldout Kill"
+    },
+    "cost_usd": {
+      "title": "Cost Usd",
+      "type": "number"
+    },
+    "coverage": {
+      "title": "Coverage",
+      "type": "number"
+    },
+    "coverage_gain": {
+      "default": 0,
+      "title": "Coverage Gain",
+      "type": "number"
+    },
+    "duration_s": {
+      "title": "Duration S",
+      "type": "number"
+    },
+    "feedback_infrastructure_errors": {
+      "default": 0,
+      "title": "Feedback Infrastructure Errors",
+      "type": "integer"
+    },
+    "feedback_killed": {
+      "title": "Feedback Killed",
+      "type": "integer"
+    },
+    "feedback_timeouts": {
+      "default": 0,
+      "title": "Feedback Timeouts",
+      "type": "integer"
+    },
+    "feedback_total": {
+      "title": "Feedback Total",
+      "type": "integer"
+    },
+    "generated_tests": {
+      "title": "Generated Tests",
+      "type": "integer"
+    },
+    "heldout_infrastructure_errors": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Heldout Infrastructure Errors"
+    },
+    "heldout_killed": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Heldout Killed"
+    },
+    "heldout_score": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Heldout Score"
+    },
+    "heldout_timeouts": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Heldout Timeouts"
+    },
+    "heldout_total": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Heldout Total"
+    },
+    "new_failure_signatures": {
+      "default": 0,
+      "title": "New Failure Signatures",
+      "type": "integer"
+    },
+    "round": {
+      "title": "Round",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "seed": {
+      "title": "Seed",
+      "type": "integer"
+    },
+    "unique_failures": {
+      "title": "Unique Failures",
+      "type": "integer"
+    },
+    "valid_test_rate": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Valid Test Rate"
+    },
+    "valid_tests": {
+      "title": "Valid Tests",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "arm",
+    "seed",
+    "round",
+    "feedback_killed",
+    "feedback_total",
+    "coverage",
+    "valid_tests",
+    "generated_tests",
+    "unique_failures",
+    "cost_usd",
+    "duration_s"
+  ],
+  "title": "Metrics",
+  "type": "object"
+}

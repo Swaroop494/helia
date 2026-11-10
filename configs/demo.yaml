@@ -1,0 +1,15 @@
+repo: ../examples/toy
+source_dirs: [toy.py]
+tests: [tests]
+backend: fake
+arms: [repo, one-shot, guided, random, coverup]
+seeds: [0, 1, 2]
+rounds: 3
+mutant_budget: 10
+per_file: 10
+model: fake
+replay_only: false
+require_tag: false
+cache: ../.helia-cache
+runs: ../runs
+
