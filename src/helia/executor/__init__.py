@@ -47,6 +47,10 @@ class DockerExecutor:
             outgoing.mkdir()
             snapshot(root, incoming / "repo")
             write_json(incoming / "job.json", job)
+            # The worker is UID 65534. mkstemp creates job.json as 0600, so
+            # explicitly grant read access before mounting input read-only.
+            incoming.chmod(0o755)
+            (incoming / "job.json").chmod(0o644)
             name = "helia-" + uuid.uuid4().hex
             command = [
                 "docker",
