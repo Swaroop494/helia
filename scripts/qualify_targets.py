@@ -25,6 +25,8 @@ def main():
         records.append(record)
         write_json(root / "targets/runtime-audit.json", records)
         print(f"{name}: {'qualified' if record['qualified'] else 'needs investigation'}")
+    if not all(record["qualified"] for record in records):
+        raise SystemExit("One or more pinned targets failed the Docker qualification gate")
 
 
 if __name__ == "__main__":

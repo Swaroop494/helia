@@ -15,10 +15,18 @@ jobs:
       - run: uv run mypy src contracts
       - run: uv run pytest -q
       - run: uv run helia run configs/demo.yaml
-      - run: docker build -f docker/Dockerfile -t helia-runner:ci .
+      - run: docker build -f docker/Dockerfile -t helia-runner:ci -t helia-runner:local .
       - run: uv run pytest -q tests/test_docker_integration.py
         env:
           HELIA_DOCKER_IMAGE: helia-runner:ci
+      - run: uv run python scripts/prepare_targets.py
+      - run: uv run python scripts/qualify_targets.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: target-runtime-audit
+          path: targets/runtime-audit.json
+          if-no-files-found: ignore
   secrets:
     runs-on: ubuntu-latest
     steps:
