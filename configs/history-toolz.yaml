@@ -1,0 +1,11 @@
+repo: ../targets/checkouts/toolz-history
+source_dirs: [toolz]
+tests: [toolz/tests]
+image: helia-runner:local
+backend: docker
+arms: [repo]
+seeds: [0]
+require_tag: false
+reruns: 3
+cache: ../.helia-cache
+runs: ../runs

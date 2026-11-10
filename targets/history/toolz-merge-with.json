@@ -1,0 +1,3 @@
+{
+  "tests/test_helia_history.py": "from collections import UserDict\nfrom toolz.dicttoolz import merge_with\n\ndef test_merge_with_mapping_preserves_values():\n    assert merge_with(sum, UserDict({1: 1})) == {1: 1}\n"
+}

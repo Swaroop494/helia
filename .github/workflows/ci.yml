@@ -21,11 +21,20 @@ jobs:
           HELIA_DOCKER_IMAGE: helia-runner:ci
       - run: uv run python scripts/prepare_targets.py
       - run: uv run python scripts/qualify_targets.py
+      - run: uv run python scripts/prepare_history.py
+      - run: uv run helia verify-fix configs/history-toolz.yaml c696ac6f3c2962b370fe8dda78c64cf2564e1457 targets/history/toolz-merge-with.json --output targets/history/toolz-merge-with-evidence.json
+      - run: uv run python scripts/check_history.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: target-runtime-audit
           path: targets/runtime-audit.json
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: historical-bug-evidence
+          path: targets/history/toolz-merge-with-evidence.json
           if-no-files-found: ignore
   secrets:
     runs-on: ubuntu-latest
