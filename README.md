@@ -132,9 +132,10 @@ contracts, a real Cosmic Ray adapter, local unit/contract tests, synthetic end-t
 Linux Docker integration CI, a dev container, target pins, experiment configurations and
 reporting. See `docs/implementation-status.md` for the remaining work and verification limits.
 
-This is not a completed ten-week research campaign. Real Docker runs, target qualification,
-paid generation, external CoverUp generation, historical bug selection and the 3-repository /
-10-seed experiments require the corresponding runtime, credentials and curated inputs.
+This is not a completed ten-week research campaign. Linux CI verifies Docker execution,
+target suite qualification and one curated historical Toolz bug. Paid generation,
+external CoverUp generation and the 3-repository / 10-seed experiments require the
+specified model, spend cap, credentials and metered baseline inputs.
 No experimental superiority or confirmed real-world bug is claimed by the demo.
 
 ## Development

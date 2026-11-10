@@ -1,0 +1,25 @@
+# Set model, current Anthropic token prices and global spend budget before real runs.
+repo: ../targets/checkouts/tabulate
+source_dirs: [tabulate]
+tests: [test]
+image: helia-runner:local
+backend: docker
+arms: [repo, one-shot, guided, random, coverup]
+seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+rounds: 10
+mutant_budget: 100
+per_file: 100
+heldout_fraction: 0.3
+timeout_s: 60
+workers: 2
+reruns: 3
+budget_usd: 5
+max_calls: 10
+model: ""
+input_per_million: 0
+output_per_million: 0
+replay_only: true
+require_tag: true
+coverup_bundle: ../targets/coverup/tabulate
+cache: ../.helia-cache
+runs: ../runs

@@ -1,6 +1,6 @@
 # Local validation
 
-Validated on Windows with Python 3.12.10 on 2026-11-10:
+Validated on Windows with Python 3.12.10 and Linux GitHub Actions on 2026-11-10:
 
 - `pytest -q`: 38 passed, one Docker integration test skipped because Docker is unavailable.
 - `ruff check .`: passed.
@@ -11,7 +11,12 @@ Validated on Windows with Python 3.12.10 on 2026-11-10:
 - Read-only static audit of three pinned target checkouts completed; all satisfy the source
   line range. Licence texts are retained in `targets/static-audit.json`.
 
-No target test suite or generated test was executed on the host. No paid API calls were
-made. Docker build/runtime, full target qualification, live generation and research claims
-remain unverified locally. The Docker smoke test is wired into Linux CI but no hosted CI
-run has been triggered from this local repository.
+Linux CI built the Docker runner, passed the non-root/network-off sandbox integration test,
+ran each of the three pinned target suites three times within the one-minute limit and
+confirmed a curated Toolz bug by passing on the fixed code and failing after reversing
+its implementation patch. See [the passing CI run](https://github.com/Swaroop494/helia/actions/runs/42813421736)
+and its target audit and historical evidence artifacts.
+
+No target test suite or generated test was executed on the Windows host. Docker Desktop
+requires WSL configuration there. No paid API calls were made, and no H1-H5 research
+claim has been measured.
