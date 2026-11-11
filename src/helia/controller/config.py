@@ -4,16 +4,18 @@ from pathlib import Path, PurePosixPath
 from typing import Literal
 
 import yaml
-from pydantic import Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from contracts.models import Arm, Record
+from contracts.models import Arm
 
 
 def default_arms() -> list[Arm]:
     return ["repo", "one-shot", "guided", "coverup"]
 
 
-class Config(Record):
+class Config(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+    schema_version: Literal[2] = 2
     repo: Path
     source_dirs: list[str] = Field(default_factory=lambda: ["src"])
     tests: list[str] = Field(default_factory=lambda: ["tests"])
@@ -30,6 +32,7 @@ class Config(Record):
     max_calls: int = Field(default=10, ge=1)
     max_tokens: int = Field(default=2048, ge=128)
     budget_usd: float = Field(default=5, ge=0)
+    run_budget_usd: float = Field(default=5, ge=0)
     model: str = ""
     input_per_million: float = Field(default=0, ge=0)
     output_per_million: float = Field(default=0, ge=0)

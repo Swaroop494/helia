@@ -1,6 +1,7 @@
 """Cached LLM calls with preflight cost reservations and auditable usage."""
 
 import json
+import os
 import threading
 from pathlib import Path
 from typing import Protocol
@@ -18,10 +19,15 @@ class Provider(Protocol):
 
 
 class AnthropicProvider:
+    def __init__(self, live: bool = False):
+        self.live = live
+
     def complete(self, model, prompt, settings):
+        if not self.live or not os.environ.get("ANTHROPIC_API_KEY"):
+            raise RuntimeError("Paid requests require --live and ANTHROPIC_API_KEY")
         import anthropic
 
-        client = anthropic.Anthropic(max_retries=0)
+        client = anthropic.Anthropic(max_retries=0, timeout=60)
         response = client.messages.create(
             model=model,
             messages=[{"role": "user", "content": prompt}],
@@ -48,11 +54,15 @@ class CachedLLM:
         input_per_million: float,
         output_per_million: float,
         replay_only: bool = False,
+        run_spend_path: Path | None = None,
+        run_budget_usd: float | None = None,
     ):
         self.provider, self.cache, self.ledger, self.model = provider, cache, ledger, model
         self.budget, self.max_calls = budget_usd, max_calls
         self.input_rate, self.output_rate = input_per_million, output_per_million
         self.replay_only = replay_only
+        self.run_spend_path = run_spend_path
+        self.run_budget = budget_usd if run_budget_usd is None else run_budget_usd
         self.lock = threading.Lock()
         self.entries = json.loads(ledger.read_text()) if ledger.exists() else []
         self.spend_path = ledger.with_name("api-spend.json")
@@ -92,6 +102,12 @@ class CachedLLM:
                     or sum(e["cost_usd"] for e in self.spend) + reserve > self.budget
                 ):
                     raise BudgetExceeded("Insufficient budget for worst-case next call")
+                run_spend = []
+                if self.run_spend_path is not None:
+                    if self.run_spend_path.exists():
+                        run_spend = json.loads(self.run_spend_path.read_text())
+                    if sum(e["cost_usd"] for e in run_spend) + reserve > self.run_budget:
+                        raise BudgetExceeded("Run-wide spend cap exhausted")
                 write_json(
                     self.cache / (key + ".request.json"),
                     {
@@ -108,6 +124,9 @@ class CachedLLM:
                 write_json(self.ledger, self.entries)
                 self.spend.append({"cache_key": key, "cost_usd": reserve, "state": "reserved"})
                 write_json(self.spend_path, self.spend)
+                run_spend.append({"cache_key": key, "cost_usd": reserve, "state": "reserved"})
+                if self.run_spend_path is not None:
+                    write_json(self.run_spend_path, run_spend)
                 response = self.provider.complete(self.model, prompt, settings)
                 charge = (
                     response.input_tokens * self.input_rate
@@ -117,6 +136,9 @@ class CachedLLM:
                 write_json(path, response)
                 self.spend[-1] = {"cache_key": key, "cost_usd": charge, "state": "complete"}
                 write_json(self.spend_path, self.spend)
+                run_spend[-1] = {"cache_key": key, "cost_usd": charge, "state": "complete"}
+                if self.run_spend_path is not None:
+                    write_json(self.run_spend_path, run_spend)
                 self.entries.pop()
             if self.cost + charge > self.budget:
                 raise BudgetExceeded("Cached call exceeds remaining logical experiment budget")

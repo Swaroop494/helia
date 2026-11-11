@@ -21,6 +21,9 @@ def main():
         cmd.add_argument("config", type=Path)
         if name == "run":
             cmd.add_argument("--run-id")
+            mode = cmd.add_mutually_exclusive_group()
+            mode.add_argument("--live", action="store_true")
+            mode.add_argument("--dry-run", action="store_true")
         if name == "sensitivity":
             cmd.add_argument("--exploration", type=float, nargs="+", default=[0, 0.15, 0.3])
             cmd.add_argument("--kill-weight", type=float, nargs="+", default=[0.5, 1, 2])
@@ -72,7 +75,10 @@ def main():
             if args.command == "index":
                 print(build_index(config.repo, config.source_dirs).model_dump_json(indent=2))
             elif args.command == "run":
-                print(run_experiment(config, args.run_id))
+                if args.dry_run:
+                    print(config.model_dump_json(indent=2))
+                else:
+                    print(run_experiment(config, args.run_id, live=args.live))
             elif args.command == "sensitivity":
                 for exploration in args.exploration:
                     for weight in args.kill_weight:

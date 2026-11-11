@@ -31,7 +31,7 @@ def git_metadata(root: Path):
     }
 
 
-def run_experiment(config: Config, run_id: str | None = None) -> Path:
+def run_experiment(config: Config, run_id: str | None = None, *, live: bool = False) -> Path:
     """Resume completed arms and replay incomplete arms from cached calls."""
     started = time.monotonic()
     target_hash = tree_hash(config.repo)
@@ -127,7 +127,7 @@ def run_experiment(config: Config, run_id: str | None = None) -> Path:
                 arm_dir = run_dir / f"seed-{seed}" / arm
                 if (arm_dir / "complete.json").exists():
                     continue
-                _run_arm(config, index, mutants, executor, arm, seed, arm_dir, target_hash)
+                _run_arm(config, index, mutants, executor, arm, seed, arm_dir, target_hash, live)
         manifest = json.loads(manifest_path.read_text())
         if tree_hash(config.repo) != target_hash:
             raise RuntimeError("Target changed during execution; results cannot be marked complete")
@@ -144,13 +144,13 @@ def run_experiment(config: Config, run_id: str | None = None) -> Path:
         lock.unlink(missing_ok=True)
 
 
-def _run_arm(config, index, mutants, executor, arm, seed, directory, target_hash):
+def _run_arm(config, index, mutants, executor, arm, seed, directory, target_hash, live=False):
     directory.mkdir(parents=True, exist_ok=True)
     # Keep a persistent spend ledger across restarts. Replaying completed requests
     # uses a fresh logical ledger but the cached provider is free of new API charges.
     ledger = directory / "llm-ledger.json"
     llm = CachedLLM(
-        FakeLLM() if config.backend == "fake" else AnthropicProvider(),
+        FakeLLM() if config.backend == "fake" else AnthropicProvider(live=live),
         config.cache,
         ledger,
         config.model or "fake",
@@ -158,7 +158,9 @@ def _run_arm(config, index, mutants, executor, arm, seed, directory, target_hash
         config.max_calls,
         config.input_per_million,
         config.output_per_million,
-        config.replay_only,
+        config.replay_only or (config.backend != "fake" and not live),
+        directory.parents[1] / "api-spend.json",
+        config.run_budget_usd,
     )
     if ledger.exists():
         # Preserve spent/reserved amounts; reconstruct deterministic algorithmic calls
