@@ -51,6 +51,11 @@
 
 ## Next verification gate
 
+- A1 blocked: upstream CoverUp CLI has no monetary spend-cap hook; launching with a
+  timeout or token-rate limit would not enforce the requested cap. Keep the validated
+  bundle importer until a metered gateway is available. Inspected upstream source:
+  https://github.com/plasma-umass/coverup/blob/main/src/coverup/coverup.py.
+
 Configure WSL and Docker Desktop locally, then rerun the Docker integration and target
 qualification checks. Supply the Anthropic model, price, cap and key; prepare metered
 CoverUp bundles; freeze and tag source/configuration; then run the three target
