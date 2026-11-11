@@ -4,6 +4,20 @@ from helia.fakes import FakeLLM
 from helia.llm import AnthropicProvider, BudgetExceeded, CachedLLM
 
 
+def test_bootstrap_and_undefined_metrics():
+    from helia.controller.metrics import bootstrap, summarize
+
+    assert bootstrap([0.25]) is None
+    assert bootstrap([0.25, 0.25]) == [0.25, 0.25]
+    assert bootstrap([0, 0.5, 1]) == bootstrap([0, 0.5, 1])
+    row = {"arm": "repo", "heldout_killed": 0, "heldout_total": 10,
+           "generated_tests": 0, "valid_tests": 0, "cost_usd": 0}
+    metric = summarize([row])["arms"]["repo"]
+    assert metric["heldout_score"] == 0
+    assert metric["heldout_score_ci95"] is None
+    assert metric["cost_per_killed_mutant"] is None and metric["valid_test_rate"] is None
+
+
 def test_estimate_caps_cost_and_counts_arm_seeds(tmp_path):
     from helia.controller.config import Config
     from helia.controller.estimate import estimate

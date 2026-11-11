@@ -6,6 +6,7 @@ import random
 import statistics
 from pathlib import Path
 
+from helia.controller.metrics import summarize
 from helia.io import write_json
 
 
@@ -35,6 +36,7 @@ def report(run_dir: Path) -> Path:
         rows.extend(json.loads((path.parent / "metrics.json").read_text()))
     if not rows:
         raise ValueError("No completed arms to report")
+    write_json(run_dir / "arm-summary.json", summarize(finals))
     with (run_dir / "metrics.csv").open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
         writer.writeheader()
