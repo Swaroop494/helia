@@ -3,6 +3,7 @@
 import json
 import os
 import threading
+import time
 from pathlib import Path
 from typing import Protocol
 
@@ -12,6 +13,10 @@ from helia.io import digest, native_path, write_json
 
 class BudgetExceeded(RuntimeError):
     """The next call cannot fit inside the configured budget."""
+
+
+class TransientProviderError(RuntimeError):
+    """A retryable request failure; its reservation remains charged."""
 
 
 class Provider(Protocol):
@@ -28,12 +33,16 @@ class AnthropicProvider:
         import anthropic
 
         client = anthropic.Anthropic(max_retries=0, timeout=60)
-        response = client.messages.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=settings["max_tokens"],
-            temperature=settings["temperature"],
-        )
+        try:
+            response = client.messages.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=settings["max_tokens"],
+                temperature=settings["temperature"],
+            )
+        except (anthropic.APIConnectionError, anthropic.RateLimitError,
+                anthropic.InternalServerError) as exc:
+            raise TransientProviderError(type(exc).__name__) from exc
         return LLMResponse(
             text="\n".join(b.text for b in response.content if b.type == "text"),
             input_tokens=response.usage.input_tokens,
@@ -73,6 +82,16 @@ class CachedLLM:
         return sum(e["cost_usd"] for e in self.entries)
 
     def complete(self, prompt: str, max_tokens: int = 2048, temperature: float = 0) -> LLMResponse:
+        for attempt in range(3):
+            try:
+                return self._complete(prompt, max_tokens, temperature)
+            except TransientProviderError:
+                if attempt == 2:
+                    raise
+                time.sleep(0.25 * 2 ** attempt)
+        raise AssertionError("unreachable")
+
+    def _complete(self, prompt: str, max_tokens: int, temperature: float) -> LLMResponse:
         settings = {"max_tokens": max_tokens, "temperature": temperature}
         key = digest(
             {

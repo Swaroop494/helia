@@ -4,6 +4,42 @@ from helia.fakes import FakeLLM
 from helia.llm import AnthropicProvider, BudgetExceeded, CachedLLM
 
 
+def test_retries_reserve_each_attempt(tmp_path, monkeypatch):
+    from helia.llm import TransientProviderError
+
+    waits = []
+    monkeypatch.setattr("helia.llm.time.sleep", waits.append)
+
+    class Failing(FakeLLM):
+        def complete(self, *args):
+            raise TransientProviderError("ambiguous")
+
+    llm = CachedLLM(Failing(), tmp_path / "cache", tmp_path / "ledger.json",
+                    "fake", 1, 5, 1, 1)
+    with pytest.raises(TransientProviderError):
+        llm.complete("prompt")
+    assert waits == [0.25, 0.5]
+    assert len(llm.spend) == 3
+    assert llm.cost > 0
+
+
+def test_docker_transient_retry(monkeypatch):
+    from helia.executor import DockerExecutor
+
+    executor = DockerExecutor.__new__(DockerExecutor)
+    calls = []
+
+    def job(*args):
+        calls.append(1)
+        if len(calls) < 3:
+            raise RuntimeError("docker unavailable")
+        return {"ok": True}
+
+    monkeypatch.setattr(executor, "_job_once", job)
+    monkeypatch.setattr("helia.executor.time.sleep", lambda _: None)
+    assert executor._job(None, {}, "result.json") == {"ok": True}
+
+
 def test_lock_only_reclaims_verified_local_dead_owner(tmp_path, monkeypatch):
     import json
     import os

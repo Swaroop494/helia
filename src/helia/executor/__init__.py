@@ -40,6 +40,16 @@ class DockerExecutor:
         self.image = json.loads(inspected.stdout)[0]["Id"]
 
     def _job(self, root: Path, job: dict, output_name: str):
+        for attempt in range(3):
+            try:
+                return self._job_once(root, job, output_name)
+            except (RuntimeError, OSError, subprocess.TimeoutExpired):
+                if attempt == 2:
+                    raise
+                time.sleep(0.25 * 2 ** attempt)
+        raise AssertionError("unreachable")
+
+    def _job_once(self, root: Path, job: dict, output_name: str):
         with self.slots, tempfile.TemporaryDirectory(prefix="helia-") as directory:
             base = Path(directory)
             incoming, outgoing = base / "input", base / "output"
@@ -94,7 +104,10 @@ class DockerExecutor:
                     raise RuntimeError("Oversized worker result")
                 return json.loads(path.read_text())
             finally:
-                subprocess.run(["docker", "rm", "-f", name], capture_output=True, timeout=15)
+                try:
+                    subprocess.run(["docker", "rm", "-f", name], capture_output=True, timeout=15)
+                except (OSError, subprocess.TimeoutExpired):
+                    pass
 
     def discover(self, root, index):
         records = self._job(

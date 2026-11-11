@@ -112,6 +112,7 @@ def run_experiment(config: Config, run_id: str | None = None, *, live: bool = Fa
             raise ValueError(f"Repository index is empty or has parse errors: {index.parse_errors}")
         write_json(run_dir / "index.json", index)
         all_mutants = executor.discover(config.repo, index)
+        arm_errors = []
         for seed in config.seeds:
             mutants = sample(
                 all_mutants, seed, config.mutant_budget, config.per_file, config.heldout_fraction
@@ -123,15 +124,22 @@ def run_experiment(config: Config, run_id: str | None = None, *, live: bool = Fa
                 arm_dir = run_dir / f"seed-{seed}" / arm
                 if (arm_dir / "complete.json").exists():
                     continue
-                _run_arm(config, index, mutants, executor, arm, seed, arm_dir, target_hash, live)
+                try:
+                    _run_arm(config, index, mutants, executor, arm, seed, arm_dir, target_hash, live)
+                except (RuntimeError, ValueError, OSError, subprocess.SubprocessError) as exc:
+                    error = {"arm": arm, "seed": seed, "error": str(exc)}
+                    arm_errors.append(error)
+                    write_json(arm_dir / "error.json", error)
         manifest = json.loads(manifest_path.read_text())
         if tree_hash(config.repo) != target_hash:
             raise RuntimeError("Target changed during execution; results cannot be marked complete")
-        manifest.update(status="complete", duration_s=time.monotonic() - started)
+        manifest.update(status="partial" if arm_errors else "complete", errors=arm_errors,
+                        duration_s=time.monotonic() - started)
         write_json(manifest_path, manifest)
         from helia.controller.report import report
 
-        report(run_dir)
+        if list(run_dir.glob("seed-*/*/complete.json")):
+            report(run_dir)
         return run_dir
     except Exception as exc:
         write_json(run_dir / "error.json", {"type": type(exc).__name__, "message": str(exc)})
@@ -309,6 +317,9 @@ def _run_arm(config, index, mutants, executor, arm, seed, directory, target_hash
         except (ValueError, SyntaxError) as exc:
             count += 1
             write_json(directory / f"round-{round_number}/rejected.json", {"reason": str(exc)})
+        except (RuntimeError, OSError, subprocess.SubprocessError) as exc:
+            write_json(directory / f"round-{round_number}/error.json",
+                       {"type": type(exc).__name__, "reason": str(exc)})
         reward = (
             config.reward_kills * (len(kills) - previous_kills)
             + config.reward_coverage * (coverage_fraction(baseline) - previous_coverage)
