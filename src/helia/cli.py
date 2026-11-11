@@ -18,7 +18,7 @@ def main():
     matrix = commands.add_parser("experiment", help="Resume a repository/arm/seed matrix")
     matrix.add_argument("configs", type=Path, nargs="+")
     matrix.add_argument("--live", action="store_true")
-    for name in ["run", "index", "sensitivity"]:
+    for name in ["run", "index", "sensitivity", "estimate"]:
         cmd = commands.add_parser(name)
         cmd.add_argument("config", type=Path)
         if name == "run":
@@ -73,6 +73,10 @@ def main():
             config = load_config(args.config.resolve())
             if args.command == "index":
                 print(build_index(config.repo, config.source_dirs).model_dump_json(indent=2))
+            elif args.command == "estimate":
+                from helia.controller.estimate import estimate
+
+                print(json.dumps(estimate(config), indent=2))
             elif args.command == "run":
                 if args.dry_run:
                     print(config.model_dump_json(indent=2))

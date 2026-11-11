@@ -1,5 +1,7 @@
 # Engineering decisions
 
+- C10: Estimate is offline config arithmetic with a hard API cap and explicitly assumption-based timeout-scaled time, excluding unknown startup/triage costs.
+
 - B9: Doctor probes engine availability with a ten-second limit and reports dependency/key presence and free disk; structured run events omit prompts, keys and exception bodies.
 
 - B8: Config v3 rejects nonfinite costs/timeouts, empty paths and out-of-range seeds/work limits; bound Git/image inspection and fix container hash seeding while retaining container CPU/memory/PID limits.

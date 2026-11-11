@@ -4,6 +4,20 @@ from helia.fakes import FakeLLM
 from helia.llm import AnthropicProvider, BudgetExceeded, CachedLLM
 
 
+def test_estimate_caps_cost_and_counts_arm_seeds(tmp_path):
+    from helia.controller.config import Config
+    from helia.controller.estimate import estimate
+
+    config = Config(repo=tmp_path, backend="fake", arms=["repo", "guided"], seeds=[1, 2])
+    result = estimate(config)
+    assert result["arm_seed_runs"] == 4 and result["max_generation_calls"] == 20
+    assert result["api_spend_cap_usd"] == 0
+    config.backend = "docker"
+    config.replay_only = False
+    config.run_budget_usd = 2
+    assert estimate(config)["api_spend_cap_usd"] == 2
+
+
 def test_doctor_is_bounded_and_does_not_expose_key(monkeypatch):
     import json
     import subprocess
