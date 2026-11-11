@@ -1,5 +1,7 @@
 # Engineering decisions
 
+- A5: Audit combines licence evidence and source size with an initial isolated suite plus three reruns; licence approval remains explicit human review.
+
 - A4: Matrix runs have one folder and dollar cap per repository/arm/seed tuple; manifest v2 explicitly records config hash alongside target and Helia commit provenance.
 
 - A3: Export rerun-verified bug leads as standalone pytest repro modules; minimization removes unrelated tests without claiming globally minimal inputs.

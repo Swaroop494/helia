@@ -4,6 +4,29 @@ from helia.fakes import FakeLLM
 from helia.llm import AnthropicProvider, BudgetExceeded, CachedLLM
 
 
+def test_audit_reruns_and_preserves_licence(tmp_path):
+    from contracts.models import ExecResult
+    from helia.audit import audit_target
+    from helia.controller.config import Config
+
+    (tmp_path / "toy.py").write_text("def f(): return 1\n")
+    (tmp_path / "LICENSE").write_text("licence evidence")
+
+    class Executor:
+        calls = 0
+
+        def run(self, *_):
+            self.calls += 1
+            return ExecResult(target="original", duration_s=0.1,
+                              outcome="pass" if self.calls < 4 else "assert_fail")
+
+    executor = Executor()
+    result = audit_target(Config(repo=tmp_path, source_dirs=["toy.py"], backend="fake"), executor)
+    assert executor.calls == 4
+    assert result["flaky"] and not result["qualified"]
+    assert result["licence_texts"]["LICENSE"] == "licence evidence"
+
+
 def test_matrix_is_cartesian_and_resumable(tmp_path, monkeypatch):
     from pathlib import Path
 
