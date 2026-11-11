@@ -276,7 +276,7 @@ def _run_arm(config, index, mutants, executor, arm, seed, directory, target_hash
                     [f.model_dump() for f in failures.values()] if arm == "guided" else [],
                 )
                 response = llm.complete(prompt, max_tokens=config.max_tokens).text
-            source, key, num_tests = validate_response(response, seen)
+            source, key, num_tests = validate_response(response, seen, list(generated.values()))
             count += num_tests
             seen.add(key)
             name = f"tests/test_helia_{key[:16]}.py"

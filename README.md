@@ -111,6 +111,16 @@ Install the optional plotting dependencies with `uv sync --extra dev --extra plo
 
 ## Configuration and reproducibility
 
+Matrix commands print every tuple result and exit with status 1 if any tuple fails.
+Rerun the same command to retry unfinished work. Malformed configuration errors appear
+on stderr. Ctrl+C exits with status 130.
+
+Indexing accepts Python source encoding declarations and records invalid files in
+`parse_errors`. It rejects repositories above 10,000 Python files, 2 MB per file or
+50 MB total source bytes; ignored directories such as `.venv` are pruned first.
+Generated modules that overlap accepted top-level tests with identical imports and
+helpers are rejected so duplicate tests cannot inflate valid-test counts.
+
 Configurations are strict YAML documents validated by Pydantic. Relative paths resolve from the config file. See [configs/demo.yaml](configs/demo.yaml) for a fake run and [configs/experiment.yaml](configs/experiment.yaml) for the real-run template. Current config contract version is 3. Schema files can be regenerated with `uv run helia schemas`.
 
 Default run IDs derive from configuration and target contents. Manifests record config and implementation hashes, target fingerprint, Git commits, runner image, and whether the run is synthetic. Reusing a run ID with changed inputs is rejected. Completed arms are retained, while interrupted work can resume from cached model responses. Local locks are reclaimed only when Helia verifies the recorded process on the same host has exited. Ambiguous and foreign-host locks need manual investigation.

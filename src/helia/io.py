@@ -59,5 +59,8 @@ def tree_hash(root: Path) -> str:
             and not p.is_symlink()
             and not any(x in IGNORE for x in p.relative_to(root).parts)
         ):
-            files[p.relative_to(root).as_posix()] = hashlib.sha256(p.read_bytes()).hexdigest()
+            with p.open("rb") as stream:
+                files[p.relative_to(root).as_posix()] = hashlib.file_digest(
+                    stream, "sha256"
+                ).hexdigest()
     return digest(files)

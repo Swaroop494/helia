@@ -1,5 +1,22 @@
 # Implementation and verification ledger
 
+## Robustness follow-up (2026-11-11)
+
+- CLI handles malformed YAML and Ctrl+C cleanly, and returns a failure status when
+  a matrix contains errors after processing its remaining tuples.
+- Indexing prunes ignored directories, honors Python encoding cookies, records invalid
+  source diagnostics, and rejects inputs above 10,000 Python files, 2 MB per file or
+  50 MB total. These limits are not a hard controller memory/CPU sandbox. Repository
+  hashing streams individual files instead of loading their entire contents.
+- Repository paths normalize Windows separators and reject duplicates and NUL bytes.
+- Generated-test counts exclude nested functions and uncollectible ordinary classes;
+  assertions must occur inside candidate tests. Prompt limits include target source.
+- Overlapping top-level tests are rejected when normalized bodies and supporting
+  imports/helpers/fixtures match an accepted module. Class-method overlap and
+  equivalent tests with different support contexts remain undetected.
+- External runtime/admin work, automatic metered CoverUp generation, input reduction,
+  whole-program analysis and optional research extensions remain outstanding.
+
 ## Engineering pass (2026-11-11)
 
 - A1 blocked: automatic CoverUp launch needs a version-pinned monetary-cap gateway;
@@ -82,8 +99,8 @@
   leads for review. Input-level delta debugging is not implemented. A Toolz fix for
   `merge_with` is curated and its reverse-patch differential check passes in Linux CI;
   additional historical fixes would widen real-bug evaluation.
-- AST call relationships are approximate, not a whole-program points-to analysis. Module
-  dedupe does not detect overlapping tests in otherwise different modules.
+- AST call relationships are approximate, not a whole-program points-to analysis.
+  Overlap dedupe covers top-level tests with identical supporting context only.
 - Fresh Docker containers trade startup speed for isolation; warm-container reuse and
   pytest-xdist inside individual jobs are not implemented. Parallelism is across mutants.
 - H2/H4 need interpretation of per-round trajectories and policy logs. Automatic verdicts

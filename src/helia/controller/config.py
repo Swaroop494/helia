@@ -59,9 +59,13 @@ class Config(BaseModel):
             raise ValueError("Repository path lists must be nonempty")
         for value in values:
             path = PurePosixPath(value.replace("\\", "/"))
-            if path.is_absolute() or ".." in path.parts or ":" in value or value.startswith("-"):
+            if (path.is_absolute() or ".." in path.parts or ":" in value
+                    or value.startswith("-") or "\x00" in value):
                 raise ValueError("Use relative repository paths, not command options")
-        return values
+        normalized = [PurePosixPath(value.replace("\\", "/")).as_posix() for value in values]
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("Duplicate repository paths")
+        return normalized
 
     @model_validator(mode="after")
     def valid_experiment(self):

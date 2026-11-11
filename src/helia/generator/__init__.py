@@ -16,6 +16,8 @@ def build_prompt(
     max_chars: int = 24000,
 ) -> str:
     """Accept only sanitized observations, never a mutant or mutation source."""
+    if max_chars < 1:
+        raise ValueError("Prompt character limit must be positive")
     neighbors = [
         r
         for r in index.regions
@@ -44,24 +46,48 @@ def build_prompt(
         f"Focus on {category} cases. Use imports consistent with the existing tests.\n"
         f"TARGET {region.id}\n{region.source}\nCONTEXT\n"
     )
-    return prefix + json.dumps(context, sort_keys=True)[: max(0, max_chars - len(prefix))]
+    return (prefix + json.dumps(context, sort_keys=True))[:max_chars]
 
 
-def validate_response(text: str, seen: set[str]) -> tuple[str, str, int]:
+def _top_level_fingerprints(tree: ast.Module) -> set[str]:
+    """Compare standalone tests only when imports, fixtures and helpers also match."""
+    import copy
+
+    functions = (ast.FunctionDef, ast.AsyncFunctionDef)
+    tests = [n for n in tree.body if isinstance(n, functions) and n.name.startswith("test_")]
+    support = ast.Module(body=[n for n in tree.body if n not in tests], type_ignores=[])
+    context = ast.dump(support, include_attributes=False)
+    keys = set()
+    for test in tests:
+        normalized = copy.deepcopy(test)
+        normalized.name = "test_generated"
+        keys.add(digest([context, ast.dump(normalized, include_attributes=False)]))
+    return keys
+
+
+def validate_response(
+    text: str, seen: set[str], accepted_sources: list[str] | None = None,
+) -> tuple[str, str, int]:
     blocks = re.findall(r"```(?:python)?\s*\n(.*?)```", text, re.S)
     source = "\n\n".join(blocks) if blocks else text.strip()
     if len(source) > 100000:
         raise ValueError("Generated test module is too large")
     tree = ast.parse(source)
-    tests = [
-        n
-        for n in ast.walk(tree)
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name.startswith("test_")
-    ]
+    candidate_keys = _top_level_fingerprints(tree)
+    for accepted in accepted_sources or []:
+        if candidate_keys & _top_level_fingerprints(ast.parse(accepted)):
+            raise ValueError("Generated module overlaps an accepted test; generate distinct tests")
+    functions = (ast.FunctionDef, ast.AsyncFunctionDef)
+    tests = [n for n in tree.body if isinstance(n, functions) and n.name.startswith("test_")]
+    for node in tree.body:
+        if isinstance(node, ast.ClassDef) and node.name.startswith("Test"):
+            if not any(isinstance(n, functions) and n.name == "__init__" for n in node.body):
+                tests.extend(n for n in node.body
+                             if isinstance(n, functions) and n.name.startswith("test_"))
     if not tests or not any(
         isinstance(n, ast.Assert)
         or (isinstance(n, ast.Call) and ast.unparse(n.func).endswith("raises"))
-        for n in ast.walk(tree)
+        for test in tests for n in ast.walk(test)
     ):
         raise ValueError("Response contains no test with an assertion")
     # Ignore function names and formatting when detecting repeats.

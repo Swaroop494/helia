@@ -5,6 +5,8 @@ import json
 import subprocess
 from pathlib import Path
 
+import yaml
+
 from helia.controller import run_experiment
 from helia.controller.config import load_config
 from helia.io import write_json
@@ -52,8 +54,12 @@ def main():
         elif args.command == "experiment":
             from helia.controller.matrix import run_matrix
 
+            failed = False
             for result in run_matrix(args.configs, live=args.live):
                 print(json.dumps(result))
+                failed |= "error" in result
+            if failed:
+                parser.exit(1, "helia: matrix contains failed runs; see results above\n")
         elif args.command == "schemas":
             import contracts.models as models
 
@@ -114,8 +120,10 @@ def main():
                 )
                 write_json(args.output, result)
                 print(args.output.resolve())
-    except (ValueError, RuntimeError, OSError, subprocess.SubprocessError) as exc:
+    except (ValueError, RuntimeError, OSError, subprocess.SubprocessError, yaml.YAMLError) as exc:
         parser.exit(1, f"helia: {exc}\n")
+    except KeyboardInterrupt:
+        parser.exit(130, "helia: interrupted; rerun the same command to resume\n")
 
 
 if __name__ == "__main__":

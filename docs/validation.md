@@ -1,5 +1,18 @@
 # Local validation
 
+Robustness follow-up on 2026-11-11:
+
+- `pytest -q`: 67 passed, one Docker integration test skipped.
+- `ruff check .`: passed.
+- `mypy src contracts`: passed across 29 source files.
+- `git diff --check`: passed.
+- New regressions cover matrix failure exit status, malformed YAML, Python encoding
+  declarations, index limits and ignored directories, portable path normalization,
+  collected-test counting, overlapping generated tests and prompt size limits.
+- No paid calls, Docker image build, target campaign or external administration ran.
+
+The following records describe earlier validation, not newly repeated CI checks.
+
 Validated on Windows with Python 3.12.10 and Linux GitHub Actions on 2026-11-10:
 
 - `pytest -q`: 38 passed, one Docker integration test skipped because Docker is unavailable.

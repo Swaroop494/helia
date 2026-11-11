@@ -1,24 +1,46 @@
 """M1: static repository index and dynamic test selection."""
 
 import ast
+import os
+import tokenize
 from pathlib import Path
 
 from contracts.models import Region, RepoIndex
 from helia.io import IGNORE
 
 
-def build_index(root: Path, source_dirs: list[str]) -> RepoIndex:
+def build_index(
+    root: Path, source_dirs: list[str], *, max_file_bytes: int = 2_000_000,
+    max_total_bytes: int = 50_000_000, max_files: int = 10000,
+) -> RepoIndex:
     """Parse without importing target code; unresolved call names remain explicit."""
     regions, files, fixtures, tests, errors = [], [], {}, {}, {}
-    for path in sorted(root.rglob("*.py")):
+    total_bytes = 0
+    paths = []
+    for directory, dirs, names in os.walk(root, followlinks=False):
+        dirs[:] = sorted(d for d in dirs if d not in IGNORE
+                         and not Path(directory, d).is_symlink())
+        for name in sorted(names):
+            if name.endswith(".py"):
+                paths.append(Path(directory, name))
+                if len(paths) > max_files:
+                    raise ValueError(f"Repository exceeds index file limit ({max_files})")
+    for path in sorted(paths):
         relative = path.relative_to(root)
         if path.is_symlink() or any(p in IGNORE for p in relative.parts):
             continue
         name = relative.as_posix()
-        source = path.read_text(encoding="utf-8-sig")
         try:
+            size = path.stat().st_size
+            if size > max_file_bytes:
+                raise ValueError(f"Source file exceeds index byte limit: {name}")
+            total_bytes += size
+            if total_bytes > max_total_bytes:
+                raise ValueError("Repository exceeds total index byte limit")
+            with tokenize.open(path) as stream:
+                source = stream.read()
             tree = ast.parse(source)
-        except SyntaxError as exc:
+        except (SyntaxError, UnicodeError, OSError, RecursionError) as exc:
             errors[name] = str(exc)
             continue
         is_test = (
