@@ -181,6 +181,14 @@ def test_matrix_is_cartesian_and_resumable(tmp_path, monkeypatch):
     timestamps = [p.stat().st_mtime_ns for p in complete]
     assert list(run_matrix([tmp_path / "fake.yaml"])) == first
     assert [p.stat().st_mtime_ns for p in complete] == timestamps
+    for entry in first:
+        directory = Path(entry["run_dir"])
+        assert "<table>" in (directory / "report.html").read_text()
+        assert "SYNTHETIC" in (directory / "report.html").read_text()
+        assert "| Arm |" in (directory / "report.md").read_text()
+        import xml.etree.ElementTree as ET
+
+        ET.parse(directory / "learning-curves.svg")
 
 
 def test_paid_provider_requires_explicit_opt_in(monkeypatch):

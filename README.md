@@ -38,13 +38,17 @@ On this Windows workspace the environment is already installed. You can also run
    time only. Use hash-pinned requirements and record the resulting image ID.
 5. Copy `configs/experiment.yaml` for each target. Set source/test paths, image, an explicit
    Anthropic model and its current input/output prices. Set `ANTHROPIC_API_KEY` in the
-   controller environment and `replay_only: false` for a paid run. API keys are never sent
+   controller environment, `replay_only: false`, and pass `--live` for a paid run.
+   Config schema v3 adds `run_budget_usd` (default $5) across all arms and seeds;
+   `budget_usd` remains the per-arm cap. API keys are never sent
    to the test container. `replay_only: true` refuses missing cache entries.
 6. Supply a metered CoverUp bundle (below), or remove that arm while preparing the others.
 7. Commit and tag the reviewed implementation and use clean, pinned target checkouts.
    Research configurations require these provenance checks. For local development only,
    set `require_tag: false`.
-8. Run `uv run helia run configs/experiment.yaml`. Ten seeds are configured by default.
+8. Run `uv run helia run configs/experiment.yaml --live`. Ten seeds are configured by default.
+   Without `--live`, only cached responses are allowed. `--dry-run` validates and prints
+   configuration without Docker, generation or API requests.
 
 Every job uses a disposable non-root, network-off Docker container with a read-only root,
 dropped capabilities, no Docker socket, memory/CPU/PID limits and timeouts. Only a copied
@@ -97,7 +101,10 @@ Configured prices must match the provider; Helia cannot enforce provider-side ac
 ```text
 helia doctor
 helia index CONFIG
-helia run CONFIG [--run-id NAME]
+helia run CONFIG [--run-id NAME] [--live | --dry-run]
+helia experiment CONFIG [CONFIG ...] [--live]
+helia estimate CONFIG
+helia bugcheck CONFIG FIX_COMMIT RUN_DIRECTORY [--output evidence.json]
 helia report RUN_DIRECTORY
 helia plot RUN_DIRECTORY
 helia schemas [OUTPUT_DIRECTORY]
@@ -113,11 +120,20 @@ call-phase failures; timeouts and infrastructure errors do not count.
 
 ## Reproducibility and resume
 
+`experiment` expands configurations into one run folder per repository/arm/seed tuple.
+Each tuple has its own run-wide cap; a matrix can spend the sum of those caps.
+Reports include Markdown, HTML, SVG learning curves, and seed-bootstrap arm summaries.
+`bugcheck` evaluates saved accepted tests; it does not generate new tests or call an API.
+Use `python scripts/audit_targets.py CONFIG [CONFIG ...] --output targets/audit.json`
+for licence/size evidence and a baseline suite plus three reruns in Docker.
+
 Run IDs default to a hash of the configuration and target contents. Reusing an ID with
 changed input is rejected. Completed arms are preserved; an interrupted arm is replayed
 from the beginning using cached LLM responses. The `.lock` prevents two controllers from
-writing the same run. If a process is killed, remove a stale lock only after verifying that
-the old process stopped. Do not modify the target or cache during a run.
+writing the same run. Local locks are reclaimed only after verifying that their PID is
+dead. Legacy, foreign-host and ambiguous locks require investigation; an interrupted
+acquisition guard is deliberately not cleared automatically. Do not modify the target
+or cache during a run.
 
 Only a passing original suite can be scored. Generated modules must collect and pass
 repeatedly; skipped/xfail-only modules are rejected. Unknown coverage runs the full suite;

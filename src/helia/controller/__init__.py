@@ -187,6 +187,7 @@ def _run_arm(config, index, mutants, executor, arm, seed, directory, target_hash
     leads: list[BugLead] = []
     metrics: list[dict] = []
     count = valid = 0
+    generation_errors = 0
     started = time.monotonic()
     originals = [executor.run(config.repo, {}) for _ in range(config.reruns)]
     if any(r.outcome != "pass" for r in originals):
@@ -326,6 +327,7 @@ def _run_arm(config, index, mutants, executor, arm, seed, directory, target_hash
             count += 1
             write_json(directory / f"round-{round_number}/rejected.json", {"reason": str(exc)})
         except (RuntimeError, OSError, subprocess.SubprocessError) as exc:
+            generation_errors += 1
             write_json(directory / f"round-{round_number}/error.json",
                        {"type": type(exc).__name__, "reason": str(exc)})
         reward = (
@@ -342,6 +344,8 @@ def _run_arm(config, index, mutants, executor, arm, seed, directory, target_hash
     held_results = executor.evaluate(config.repo, generated, heldout, baseline)
     write_json(directory / "heldout-results.json", [r.model_dump() for r in held_results])
     record(rounds + 1, held_results)
+    if generation_errors:
+        raise RuntimeError(f"{generation_errors} generation rounds failed; arm remains resumable")
     write_json(
         directory / "complete.json", {"final": metrics[-1], "synthetic": config.backend == "fake"}
     )

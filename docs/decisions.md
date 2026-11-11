@@ -1,5 +1,10 @@
 # Engineering decisions
 
+- Scope: Record external administration, long/paid campaigns and optional research extensions as blocked/unverified rather than inventing credentials, results or unsupported integrations.
+- Failure completion: Infrastructure/cache errors leave an arm resumable after other rounds and arms finish; failed generation is never silently marked complete.
+
+- C13: Reports generate portable HTML and SVG without plotting dependencies, with seed-mean feedback learning curves and the same arm-summary metrics in Markdown and HTML.
+
 - C12: Bugcheck evaluates saved arm/seed suites against a reverse-patched disposable snapshot, refuses synthetic/changed targets, and requires stable failure evidence (verification record v2).
 
 - C11: Versioned arm summaries bootstrap held-out scores across seeds with a fixed RNG; fewer than two seeds and zero-denominator rates remain undefined.

@@ -1,5 +1,51 @@
 # Implementation and verification ledger
 
+## Engineering pass (2026-11-11)
+
+- A1 blocked: automatic CoverUp launch needs a version-pinned monetary-cap gateway;
+  existing metered import is preserved. No uncapped launcher was added.
+- A2 done: explicit live/key gate, replay default, config-only dry run, persistent
+  run-wide API cap and per-arm logical budgets; fake provider tests only.
+- A3 done: existing repeated triage/minimization now exports standalone bug-lead repros.
+  Input-level delta debugging remains outside module minimization.
+- A4 done: repository x arm x seed runner, per-tuple folders, resume/idempotence tests,
+  config hash and Git provenance in manifest v2.
+- A5 done: combined licence/size/timing audit with baseline plus three reruns; real
+  target runtime qualification remains blocked on the local Linux Docker engine.
+- A6 done: verified-dead local owner reclamation, serialized claimants, conservative
+  handling of malformed/legacy/foreign locks and interrupted acquisition guards.
+- B7 done: bounded backoff for transient LLM/Docker failures, conservative retry
+  reservations, round/arm error isolation and resumable partial results.
+- B8 implemented with limits: config v3 validates finite values, path lists, seeds and
+  work limits; provider, Git, Docker calls have timeouts and containers retain resource
+  limits. Arbitrary target nondeterminism and controller memory for very large source
+  trees are not hard-bounded; stronger host-level isolation remains unverified.
+- B9 done: JSONL lifecycle events; doctor probes engine, dependencies, key presence
+  and available disk without printing credentials.
+- C10 done: offline cost cap and timeout-based time estimate with stated exclusions.
+- C11 done: seed bootstrap held-out score intervals, valid-test rate and cost/kill
+  summary; undefined denominators and insufficient seeds are explicit.
+- C12 done: bugcheck checks each saved arm/seed against an isolated reverse patch;
+  rejects synthetic or mismatched targets and requires stable differential failures.
+- C13 done: Markdown/HTML comparison tables and dependency-free SVG learning curves.
+- Verification: ruff and mypy pass; 55 local tests pass, 1 Docker integration test is
+  skipped. No paid calls, real target campaigns, dependency installs or long jobs run.
+
+### Remaining documented scope and blocked verification
+
+- Local Windows/WSL engine execution, real image build, target-specific dependency-lock
+  review, broader historical bug curation, paid generation and full 3-repo/10-seed
+  campaign remain unverified; they require external runtime/data or prohibited jobs.
+- Whole-program call analysis, overlapping-module dedupe, warm containers, in-job
+  xdist, cross-repository aggregate inference, optional Pynguin/mini-swe-agent/
+  TestGenEval/Q-learning/dashboard extensions remain unimplemented. They require
+  independent designs and dependency/runtime validation; no results are simulated.
+- Branch protection, real CODEOWNERS identities, Projects/milestones, hosted secrets
+  and release tags remain blocked on external repository administration and identity
+  information. No credentials, identities or release approvals are fabricated.
+- Automatic H2/H4 causal verdicts remain intentionally limited; curves and policy
+  evidence are exported for interpretation, not asserted as research conclusions.
+
 ## Implemented
 
 - M1: AST files/functions/classes, qualified names, conservative static call relationships,
