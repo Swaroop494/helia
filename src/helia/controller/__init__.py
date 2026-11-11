@@ -305,6 +305,9 @@ def _run_arm(config, index, mutants, executor, arm, seed, directory, target_hash
                     lead = triage(lead_source, isolated)
                 leads.append(lead)
                 write_json(directory / f"triage/{lead.id}.json", lead)
+                if lead.status == "bug_lead":
+                    repro = directory / "triage" / f"test_repro_{lead.id}.py"
+                    repro.write_text(lead.test_source, encoding="utf-8")
         except BudgetExceeded:
             break
         except (ValueError, SyntaxError) as exc:
