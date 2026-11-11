@@ -22,7 +22,8 @@ from helia.repo_index import build_index
 
 def git_metadata(root: Path):
     def git(*args):
-        p = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
+        p = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True,
+                           timeout=15)
         return p.stdout.strip() if p.returncode == 0 else None
 
     return {

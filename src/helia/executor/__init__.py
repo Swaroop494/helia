@@ -35,7 +35,8 @@ class DockerExecutor:
                 "Docker is required. Install Docker Desktop with WSL2 or Docker Engine."
             )
         inspected = subprocess.run(
-            ["docker", "image", "inspect", image], check=True, capture_output=True, text=True
+            ["docker", "image", "inspect", image], check=True, capture_output=True, text=True,
+            timeout=15,
         )
         self.image = json.loads(inspected.stdout)[0]["Id"]
 
@@ -84,6 +85,7 @@ class DockerExecutor:
                 "--mount",
                 f"type=bind,source={outgoing},target=/output",
                 "--env=PYTHONDONTWRITEBYTECODE=1",
+                "--env=PYTHONHASHSEED=0",
                 self.image,
                 "python",
                 "/opt/helia/worker.py",

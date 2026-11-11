@@ -11,7 +11,8 @@ def verify_fix(repo: Path, fix_commit: str, generated: dict, executor, reruns: i
     """Require stable pass at the fix and stable failure after reverse-applying that fix."""
 
     def git(*args):
-        return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, check=True)
+        return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, check=True,
+                              timeout=15)
 
     commit = git("rev-parse", "--verify", fix_commit + "^{commit}").stdout.decode().strip()
     head = git("rev-parse", "HEAD").stdout.decode().strip()
@@ -40,6 +41,7 @@ def verify_fix(repo: Path, fix_commit: str, generated: dict, executor, reruns: i
             cwd=broken,
             check=True,
             capture_output=True,
+            timeout=15,
         )
         fixed = [executor.run(repo, generated, tests=sorted(generated)) for _ in range(reruns)]
         reverted = [executor.run(broken, generated, tests=sorted(generated)) for _ in range(reruns)]

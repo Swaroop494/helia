@@ -1,5 +1,7 @@
 # Engineering decisions
 
+- B8: Config v3 rejects nonfinite costs/timeouts, empty paths and out-of-range seeds/work limits; bound Git/image inspection and fix container hash seeding while retaining container CPU/memory/PID limits.
+
 - B7: Retry transient provider/container failures at most three times with exponential backoff and fresh spend reservations; isolate round/arm errors and preserve partial runs.
 
 - A6: Lock v2 stores host and PID; only verified-dead local owners are reclaimed under an exclusive acquisition guard, while legacy/foreign/ambiguous locks remain blocked.

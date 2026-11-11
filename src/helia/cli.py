@@ -3,6 +3,7 @@
 import argparse
 import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -109,7 +110,7 @@ def main():
                 )
                 write_json(args.output, result)
                 print(args.output.resolve())
-    except (ValueError, RuntimeError, OSError) as exc:
+    except (ValueError, RuntimeError, OSError, subprocess.SubprocessError) as exc:
         parser.exit(1, f"helia: {exc}\n")
 
 

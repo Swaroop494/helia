@@ -4,6 +4,18 @@ from helia.fakes import FakeLLM
 from helia.llm import AnthropicProvider, BudgetExceeded, CachedLLM
 
 
+@pytest.mark.parametrize("updates", [{"timeout_s": float("inf")}, {"budget_usd": float("nan")},
+                                    {"seeds": [-1]}, {"source_dirs": []}, {"reruns": 100},
+                                    {"max_tokens": 100000}])
+def test_config_rejects_unbounded_or_invalid_values(tmp_path, updates):
+    from pydantic import ValidationError
+
+    from helia.controller.config import Config
+
+    with pytest.raises(ValidationError):
+        Config(repo=tmp_path, backend="fake", **updates)
+
+
 def test_retries_reserve_each_attempt(tmp_path, monkeypatch):
     from helia.llm import TransientProviderError
 

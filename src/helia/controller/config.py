@@ -15,22 +15,22 @@ def default_arms() -> list[Arm]:
 
 class Config(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
-    schema_version: Literal[2] = 2
+    schema_version: Literal[3] = 3
     repo: Path
     source_dirs: list[str] = Field(default_factory=lambda: ["src"])
     tests: list[str] = Field(default_factory=lambda: ["tests"])
     image: str = "helia-runner:local"
     arms: list[Arm] = Field(default_factory=default_arms)
     seeds: list[int] = Field(default_factory=lambda: list(range(10)))
-    rounds: int = Field(default=10, ge=1)
-    mutant_budget: int = Field(default=100, ge=2)
+    rounds: int = Field(default=10, ge=1, le=10000)
+    mutant_budget: int = Field(default=100, ge=2, le=100000)
     per_file: int = Field(default=25, ge=1)
     heldout_fraction: float = Field(default=0.3, gt=0, lt=1)
-    timeout_s: float = Field(default=60, gt=0)
+    timeout_s: float = Field(default=60, gt=0, le=3600)
     workers: int = Field(default=2, ge=1, le=32)
-    reruns: int = Field(default=3, ge=2)
+    reruns: int = Field(default=3, ge=2, le=20)
     max_calls: int = Field(default=10, ge=1)
-    max_tokens: int = Field(default=2048, ge=128)
+    max_tokens: int = Field(default=2048, ge=128, le=32768)
     budget_usd: float = Field(default=5, ge=0)
     run_budget_usd: float = Field(default=5, ge=0)
     model: str = ""
@@ -55,6 +55,8 @@ class Config(BaseModel):
     @field_validator("source_dirs", "tests")
     @classmethod
     def safe_paths(cls, values):
+        if not values or any(not value.strip() for value in values):
+            raise ValueError("Repository path lists must be nonempty")
         for value in values:
             path = PurePosixPath(value.replace("\\", "/"))
             if path.is_absolute() or ".." in path.parts or ":" in value or value.startswith("-"):
@@ -63,6 +65,8 @@ class Config(BaseModel):
 
     @model_validator(mode="after")
     def valid_experiment(self):
+        if any(seed < 0 or seed > 2**32 - 1 for seed in self.seeds):
+            raise ValueError("Seeds must be unsigned 32-bit integers")
         if len(set(self.arms)) != len(self.arms) or len(set(self.seeds)) != len(self.seeds):
             raise ValueError("Duplicate arms or seeds")
         if not self.arms or not self.seeds:
