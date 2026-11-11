@@ -14,6 +14,7 @@ from helia.fakes import FakeExecutor, FakeLLM
 from helia.generator import build_prompt, validate_response
 from helia.io import digest, tree_hash, write_json
 from helia.llm import AnthropicProvider, BudgetExceeded, CachedLLM
+from helia.locking import acquire_lock
 from helia.mutants import sample
 from helia.policy import Policy
 from helia.repo_index import build_index
@@ -56,15 +57,8 @@ def run_experiment(config: Config, run_id: str | None = None, *, live: bool = Fa
     run_dir = config.runs / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     lock = run_dir / ".lock"
+    acquire_lock(lock)
     try:
-        fd = lock.open("x")
-    except FileExistsError:
-        raise RuntimeError(
-            f"Run is locked: {lock}. Remove only after verifying no controller is running."
-        ) from None
-    try:
-        fd.write(str(__import__("os").getpid()))
-        fd.close()
         manifest_path = run_dir / "manifest.json"
         if manifest_path.exists() and json.loads(manifest_path.read_text())["identity"] != identity:
             raise ValueError("Resume refused: configuration or target contents changed")

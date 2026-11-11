@@ -4,6 +4,26 @@ from helia.fakes import FakeLLM
 from helia.llm import AnthropicProvider, BudgetExceeded, CachedLLM
 
 
+def test_lock_only_reclaims_verified_local_dead_owner(tmp_path, monkeypatch):
+    import json
+    import os
+    import socket
+
+    from helia.locking import acquire_lock, process_dead
+
+    assert not process_dead(os.getpid())
+    path = tmp_path / ".lock"
+    for owner in ["123", {"pid": 123, "host": "other-host"},
+                  {"pid": 123, "host": socket.gethostname()}]:
+        path.write_text(json.dumps(owner))
+        monkeypatch.setattr("helia.locking.process_dead", lambda _: False)
+        with pytest.raises(RuntimeError, match="not verified dead"):
+            acquire_lock(path)
+    monkeypatch.setattr("helia.locking.process_dead", lambda _: True)
+    acquire_lock(path)
+    assert json.loads(path.read_text())["pid"] == os.getpid()
+
+
 def test_audit_reruns_and_preserves_licence(tmp_path):
     from contracts.models import ExecResult
     from helia.audit import audit_target

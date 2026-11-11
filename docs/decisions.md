@@ -1,5 +1,7 @@
 # Engineering decisions
 
+- A6: Lock v2 stores host and PID; only verified-dead local owners are reclaimed under an exclusive acquisition guard, while legacy/foreign/ambiguous locks remain blocked.
+
 - A5: Audit combines licence evidence and source size with an initial isolated suite plus three reruns; licence approval remains explicit human review.
 
 - A4: Matrix runs have one folder and dollar cap per repository/arm/seed tuple; manifest v2 explicitly records config hash alongside target and Helia commit provenance.
