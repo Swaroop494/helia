@@ -1,5 +1,7 @@
 # Engineering decisions
 
+- C12: Bugcheck evaluates saved arm/seed suites against a reverse-patched disposable snapshot, refuses synthetic/changed targets, and requires stable failure evidence (verification record v2).
+
 - C11: Versioned arm summaries bootstrap held-out scores across seeds with a fixed RNG; fewer than two seeds and zero-denominator rates remain undefined.
 
 - C10: Estimate is offline config arithmetic with a hard API cap and explicitly assumption-based timeout-scaled time, excluding unknown startup/triage costs.

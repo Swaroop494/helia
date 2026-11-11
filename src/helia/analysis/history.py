@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from helia.io import snapshot
+from helia.io import digest, snapshot
 
 
 def verify_fix(repo: Path, fix_commit: str, generated: dict, executor, reruns: int = 3):
@@ -43,12 +43,16 @@ def verify_fix(repo: Path, fix_commit: str, generated: dict, executor, reruns: i
             capture_output=True,
             timeout=15,
         )
-        fixed = [executor.run(repo, generated, tests=sorted(generated)) for _ in range(reruns)]
-        reverted = [executor.run(broken, generated, tests=sorted(generated)) for _ in range(reruns)]
+        tests = sorted(generated) if generated else executor.tests
+        fixed = [executor.run(repo, generated, tests=tests) for _ in range(reruns)]
+        reverted = [executor.run(broken, generated, tests=tests) for _ in range(reruns)]
     from helia.analysis import killed
 
-    confirmed = all(r.outcome == "pass" for r in fixed) and all(killed(r) for r in reverted)
+    signatures = {digest(r.failures) for r in reverted}
+    confirmed = (all(r.outcome == "pass" for r in fixed)
+                 and all(killed(r) for r in reverted) and len(signatures) == 1)
     return {
+        "schema_version": 2,
         "fix_commit": commit,
         "confirmed": confirmed,
         "fixed": [r.model_dump() for r in fixed],

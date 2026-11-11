@@ -4,6 +4,26 @@ from helia.fakes import FakeLLM
 from helia.llm import AnthropicProvider, BudgetExceeded, CachedLLM
 
 
+def test_bugcheck_evaluates_each_arm_and_preserves_missing(tmp_path, monkeypatch):
+    import json
+
+    from helia.analysis.bugcheck import bugcheck
+    from helia.controller.config import Config
+    from helia.io import tree_hash, write_json
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    run = tmp_path / "run"
+    config = Config(repo=repo, backend="fake", arms=["repo", "guided"], seeds=[0])
+    write_json(run / "manifest.json", {"synthetic": False, "target_hash": tree_hash(repo)})
+    write_json(run / "seed-0/repo/complete.json", {})
+    monkeypatch.setattr("helia.analysis.bugcheck.verify_fix", lambda *a: {"confirmed": True})
+    output = bugcheck(config, "commit", run, object(), tmp_path / "evidence.json")
+    records = json.loads(output.read_text())["arms"]
+    assert records[0]["result"]["confirmed"]
+    assert "error" in records[1]
+
+
 def test_bootstrap_and_undefined_metrics():
     from helia.controller.metrics import bootstrap, summarize
 

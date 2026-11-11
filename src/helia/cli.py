@@ -38,6 +38,11 @@ def main():
     history.add_argument("commit")
     history.add_argument("generated", type=Path)
     history.add_argument("--output", type=Path, default=Path("bug-verification.json"))
+    bug = commands.add_parser("bugcheck")
+    bug.add_argument("config", type=Path)
+    bug.add_argument("commit")
+    bug.add_argument("run_dir", type=Path)
+    bug.add_argument("--output", type=Path, default=Path("bugcheck.json"))
     args = parser.parse_args()
     try:
         if args.command == "doctor":
@@ -95,6 +100,11 @@ def main():
                 executor = DockerExecutor(
                     config.image, config.source_dirs, config.tests, config.timeout_s, config.workers
                 )
+                if args.command == "bugcheck":
+                    from helia.analysis.bugcheck import bugcheck
+
+                    print(bugcheck(config, args.commit, args.run_dir, executor, args.output))
+                    return
                 result = verify_fix(
                     config.repo,
                     args.commit,
