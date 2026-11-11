@@ -9,6 +9,7 @@ from contracts.models import BugLead, Failure, Metrics
 from helia.analysis import analyse, coverage_fraction, killed, triage
 from helia.baselines import load_coverup
 from helia.controller.config import Config
+from helia.diagnostics import event
 from helia.executor import DockerExecutor
 from helia.fakes import FakeExecutor, FakeLLM
 from helia.generator import build_prompt, validate_response
@@ -60,6 +61,7 @@ def run_experiment(config: Config, run_id: str | None = None, *, live: bool = Fa
     lock = run_dir / ".lock"
     acquire_lock(lock)
     try:
+        event(run_dir, "run_started", run_id=run_id)
         manifest_path = run_dir / "manifest.json"
         if manifest_path.exists() and json.loads(manifest_path.read_text())["identity"] != identity:
             raise ValueError("Resume refused: configuration or target contents changed")
@@ -124,19 +126,24 @@ def run_experiment(config: Config, run_id: str | None = None, *, live: bool = Fa
             for arm in config.arms:
                 arm_dir = run_dir / f"seed-{seed}" / arm
                 if (arm_dir / "complete.json").exists():
+                    event(run_dir, "arm_resumed", arm=arm, seed=seed)
                     continue
                 try:
+                    event(run_dir, "arm_started", arm=arm, seed=seed)
                     _run_arm(config, index, mutants, executor, arm, seed, arm_dir, target_hash, live)
+                    event(run_dir, "arm_completed", arm=arm, seed=seed)
                 except (RuntimeError, ValueError, OSError, subprocess.SubprocessError) as exc:
                     error = {"arm": arm, "seed": seed, "error": str(exc)}
                     arm_errors.append(error)
                     write_json(arm_dir / "error.json", error)
+                    event(run_dir, "arm_failed", arm=arm, seed=seed, error_type=type(exc).__name__)
         manifest = json.loads(manifest_path.read_text())
         if tree_hash(config.repo) != target_hash:
             raise RuntimeError("Target changed during execution; results cannot be marked complete")
         manifest.update(status="partial" if arm_errors else "complete", errors=arm_errors,
                         duration_s=time.monotonic() - started)
         write_json(manifest_path, manifest)
+        event(run_dir, "run_finished", status=manifest["status"])
         from helia.controller.report import report
 
         if list(run_dir.glob("seed-*/*/complete.json")):

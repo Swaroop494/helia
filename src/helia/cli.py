@@ -2,9 +2,7 @@
 
 import argparse
 import json
-import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 from helia.controller import run_experiment
@@ -43,17 +41,9 @@ def main():
     args = parser.parse_args()
     try:
         if args.command == "doctor":
-            print(
-                json.dumps(
-                    {
-                        "python": sys.version,
-                        "docker": shutil.which("docker"),
-                        "git": shutil.which("git"),
-                        "target_execution": "Docker required; no host fallback",
-                    },
-                    indent=2,
-                )
-            )
+            from helia.diagnostics import doctor
+
+            print(json.dumps(doctor(), indent=2))
         elif args.command == "experiment":
             from helia.controller.matrix import run_matrix
 

@@ -1,5 +1,7 @@
 # Engineering decisions
 
+- B9: Doctor probes engine availability with a ten-second limit and reports dependency/key presence and free disk; structured run events omit prompts, keys and exception bodies.
+
 - B8: Config v3 rejects nonfinite costs/timeouts, empty paths and out-of-range seeds/work limits; bound Git/image inspection and fix container hash seeding while retaining container CPU/memory/PID limits.
 
 - B7: Retry transient provider/container failures at most three times with exponential backoff and fresh spend reservations; isolate round/arm errors and preserve partial runs.

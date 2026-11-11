@@ -4,6 +4,25 @@ from helia.fakes import FakeLLM
 from helia.llm import AnthropicProvider, BudgetExceeded, CachedLLM
 
 
+def test_doctor_is_bounded_and_does_not_expose_key(monkeypatch):
+    import json
+    import subprocess
+
+    from helia.diagnostics import doctor
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "secret-sentinel")
+    monkeypatch.setattr("helia.diagnostics.shutil.which", lambda _: "docker")
+
+    def timeout(*args, **kwargs):
+        assert kwargs["timeout"] == 10
+        raise subprocess.TimeoutExpired("docker", 10)
+
+    monkeypatch.setattr("helia.diagnostics.subprocess.run", timeout)
+    result = doctor()
+    assert not result["ready"] and result["api_key_set"]
+    assert "secret-sentinel" not in json.dumps(result)
+
+
 @pytest.mark.parametrize("updates", [{"timeout_s": float("inf")}, {"budget_usd": float("nan")},
                                     {"seeds": [-1]}, {"source_dirs": []}, {"reruns": 100},
                                     {"max_tokens": 100000}])
