@@ -16,6 +16,9 @@ def main():
     parser = argparse.ArgumentParser(prog="helia", description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("doctor", help="Check local prerequisites without executing target code")
+    matrix = commands.add_parser("experiment", help="Resume a repository/arm/seed matrix")
+    matrix.add_argument("configs", type=Path, nargs="+")
+    matrix.add_argument("--live", action="store_true")
     for name in ["run", "index", "sensitivity"]:
         cmd = commands.add_parser(name)
         cmd.add_argument("config", type=Path)
@@ -50,6 +53,11 @@ def main():
                     indent=2,
                 )
             )
+        elif args.command == "experiment":
+            from helia.controller.matrix import run_matrix
+
+            for result in run_matrix(args.configs, live=args.live):
+                print(json.dumps(result))
         elif args.command == "schemas":
             import contracts.models as models
 

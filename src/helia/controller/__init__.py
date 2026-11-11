@@ -89,6 +89,8 @@ def run_experiment(config: Config, run_id: str | None = None, *, live: bool = Fa
             {
                 **previous_manifest,
                 "identity": identity,
+                "schema_version": 2,
+                "config_hash": digest(config.model_dump(mode="json")),
                 "config": config.model_dump(mode="json"),
                 "target_hash": target_hash,
                 "target_git": metadata,
