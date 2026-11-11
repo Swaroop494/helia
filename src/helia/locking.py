@@ -3,13 +3,14 @@
 import json
 import os
 import socket
+import sys
 from pathlib import Path
 
 
 def process_dead(pid: int) -> bool:
     if pid <= 0:
         return False
-    if os.name == "nt":
+    if sys.platform == "win32":
         import ctypes
         from ctypes import wintypes
 
